@@ -6,8 +6,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  await connectDB();
   try {
+    await connectDB();
     const { id } = params;
     const debate = await Debate.findById(id);
     if (!debate) {

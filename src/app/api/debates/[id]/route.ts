@@ -6,9 +6,9 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  await connectDB();
   try {
-    const { id } = params;
+    await connectDB();
+    const { id } = await params;
     const debate = await Debate.findById(id);
     if (!debate) {
       return NextResponse.json(

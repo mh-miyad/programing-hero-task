@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,64 +12,58 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useDebateStore } from "@/lib/store";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  AlertTriangle,
+  Edit,
+  MessageSquare,
+  ThumbsUp,
+  Trash2,
+  TrendingUp,
+  Users,
+  Zap,
+} from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 
-const debateSchema = z.object({
-  title: z
-    .string()
-    .min(10, "Title must be at least 10 characters")
-    .max(200, "Title too long"),
-  description: z
-    .string()
-    .min(50, "Description must be at least 50 characters")
-    .max(1000, "Description too long"),
-  category: z.string().min(1, "Please select a category"),
-  duration: z.string().min(1, "Please select a duration"),
-  banner: z.string().optional(),
-});
+import { useDebate } from "@/hooks/useDebate";
+import { formatDistanceToNow } from "@/lib/date-fns";
+import { Argument } from "@/Type/type";
+import { CountdownTimer } from "./CountdownTimer";
 
-type DebateForm = z.infer<typeof debateSchema>;
-
-export default function CreateDebatePage() {
-  const router = useRouter();
-  const { user, addDebate } = useDebateStore();
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
-
+const DebateDetails = ({ id }: { id: string }) => {
+  const { data: session } = useSession();
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-  } = useForm<DebateForm>({
-    resolver: zodResolver(debateSchema),
-  });
+    debate,
+    loading,
+    error,
+    replyTimer,
+    moderationWarning,
+    joinDebate,
+    addArgument,
+    voteOnArgument,
+    updateArgument,
+    deleteArgument,
+  } = useDebate(id);
+  const [selectedSide, setSelectedSide] = useState<"support" | "oppose" | null>(
+    null
+  );
+  const [argumentText, setArgumentText] = useState("");
+  const [editingArgument, setEditingArgument] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
-  if (!user) {
+  if (loading) {
+    return <div className="container mx-auto px-4 py-8">Loading...</div>;
+  }
+
+  if (!debate) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-md mx-auto">
           <CardHeader>
-            <CardTitle>Authentication Required</CardTitle>
+            <CardTitle>Debate Not Found</CardTitle>
             <CardDescription>
-              Please sign in to create a debate.
+              {` The debate you're looking for doesn't exist.`}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -74,206 +71,495 @@ export default function CreateDebatePage() {
     );
   }
 
-  const addTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 5) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput("");
+  const userParticipation = debate?.participants?.find(
+    (p: any) => p.userId === session?.user?.email
+  );
+  const isDebateActive = debate?.isActive;
+  const canEdit = (argumentId: string) => {
+    const argument = debate?.arguments?.find(
+      (a: Argument) => a?._id === argumentId
+    );
+    if (!argument || argument.authorId !== session?.user?.email) return false;
+    const timeDiff =
+      new Date().getTime() - new Date(argument.createdAt).getTime();
+    return timeDiff < 5 * 60 * 1000; // 5 minutes
+  };
+
+  const handleJoinSide = async (side: "support" | "oppose") => {
+    if (!session?.user?.email || !isDebateActive) return;
+    const result = await joinDebate(side);
+    if (!result.error) {
+      setSelectedSide(side);
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
+  const handleSubmitArgument = async () => {
+    if (!session?.user?.email || !argumentText.trim()) return;
+    await addArgument(argumentText);
+    setArgumentText("");
   };
 
-  const onSubmit = (data: DebateForm) => {
-    const durationHours = Number.parseInt(data.duration);
-    const endTime = new Date(
-      Date.now() + durationHours * 60 * 60 * 1000
-    ).toISOString();
-
-    const newDebate = {
-      id: Date.now().toString(),
-      title: data.title,
-      description: data.description,
-      tags,
-      category: data.category,
-      banner: data.banner || "/placeholder.svg?height=200&width=400",
-      duration: durationHours,
-      endTime,
-      createdAt: new Date().toISOString(),
-      createdBy: user.id,
-      participants: [],
-      arguments: [],
-      supportVotes: 0,
-      opposeVotes: 0,
-      totalVotes: 0,
-      isActive: true,
-      winner: null,
-    };
-
-    addDebate(newDebate);
-    router.push(`/debate/${newDebate.id}`);
+  const handleEditArgument = async (argumentId: string) => {
+    if (!editText.trim()) return;
+    await updateArgument(argumentId, editText);
+    setEditingArgument(null);
+    setEditText("");
   };
 
-  const categories = [
-    "tech",
-    "ethics",
-    "politics",
-    "science",
-    "society",
-    "entertainment",
-    "sports",
-  ];
-  const durations = [
-    { value: "1", label: "1 Hour" },
-    { value: "12", label: "12 Hours" },
-    { value: "24", label: "24 Hours" },
-    { value: "72", label: "3 Days" },
-    { value: "168", label: "1 Week" },
-  ];
+  // Move filter calls here to ensure debate is defined
+  const supportArguments = debate.arguments.filter(
+    (a: Argument) => a.side === "support"
+  );
+  const opposeArguments = debate.arguments.filter(
+    (a: Argument) => a.side === "oppose"
+  );
+
+  const formatReplyTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Card className="max-w-2xl mx-auto">
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Debate Header */}
+      <Card className="mb-6 border-0 shadow-lg">
         <CardHeader>
-          <CardTitle>Create New Debate</CardTitle>
-          <CardDescription>
-            Start a new discussion and let the community battle it out
-          </CardDescription>
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant={isDebateActive ? "default" : "secondary"}>
+                  {isDebateActive ? "Active" : "Ended"}
+                </Badge>
+                <Badge variant="outline">{debate.category}</Badge>
+              </div>
+              <CardTitle className="text-2xl md:text-3xl">
+                {debate.title}
+              </CardTitle>
+              <CardDescription className="text-base">
+                {debate.description}
+              </CardDescription>
+            </div>
+            <div className="text-right space-y-2">
+              <CountdownTimer endTime={debate.endTime} />
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  <span>{debate.participants.length}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <MessageSquare className="h-4 w-4" />
+                  <span>{debate.arguments.length}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-4">
+            {debate.tags.map((tag: string) => (
+              <Badge key={tag} variant="outline">
+                {tag}
+              </Badge>
+            ))}
+          </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title">Debate Title *</Label>
-              <Input
-                id="title"
-                placeholder="Should artificial intelligence replace human jobs?"
-                {...register("title")}
-              />
-              {errors.title && (
-                <p className="text-sm text-red-600">{errors.title.message}</p>
-              )}
-            </div>
+      </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                placeholder="Provide context and background for your debate topic. What are the key points to consider?"
-                rows={4}
-                {...register("description")}
-              />
-              {errors.description && (
-                <p className="text-sm text-red-600">
-                  {errors.description.message}
-                </p>
-              )}
-            </div>
-
+      {/* Join Debate */}
+      {session?.user && !userParticipation && isDebateActive && (
+        <Card className="mb-6 border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Choose Your Side
+            </CardTitle>
+            <CardDescription>
+              Select whether you support or oppose this debate topic
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
-                <Select onValueChange={(value) => setValue("category", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.category && (
-                  <p className="text-sm text-red-600">
-                    {errors.category.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="duration">Duration *</Label>
-                <Select onValueChange={(value) => setValue("duration", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select duration" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {durations.map((duration) => (
-                      <SelectItem key={duration.value} value={duration.value}>
-                        {duration.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.duration && (
-                  <p className="text-sm text-red-600">
-                    {errors.duration.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags (max 5)</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  placeholder="Add a tag"
-                  onKeyPress={(e) =>
-                    e.key === "Enter" && (e.preventDefault(), addTag())
-                  }
-                />
-                <Button
-                  type="button"
-                  onClick={addTag}
-                  disabled={tags.length >= 5}
-                >
-                  Add
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    {tag}
-                    <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => removeTag(tag)}
-                    />
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="banner">Banner Image URL (optional)</Label>
-              <Input
-                id="banner"
-                placeholder="https://example.com/image.jpg"
-                {...register("banner")}
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <Button type="submit" className="flex-1">
-                Create Debate
+              <Button
+                onClick={() => handleJoinSide("support")}
+                variant="outline"
+                className="h-20 w-full text-green-600 border-green-200 hover:bg-green-50"
+              >
+                <div className="text-center">
+                  <div className="font-semibold text-lg">Support</div>
+                  <div className="text-sm opacity-80">
+                    I agree with this topic
+                  </div>
+                </div>
               </Button>
               <Button
-                type="button"
+                onClick={() => handleJoinSide("oppose")}
                 variant="outline"
-                onClick={() => router.back()}
+                className="h-20 w-full text-red-600 border-red-200 hover:bg-red-50"
               >
-                Cancel
+                <div className="text-center">
+                  <div className="font-semibold text-lg">Oppose</div>
+                  <div className="text-sm opacity-80">
+                    I disagree with this topic
+                  </div>
+                </div>
               </Button>
             </div>
-          </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Reply Timer Warning */}
+      {replyTimer !== null && replyTimer > 0 && (
+        <Alert className="mb-6 border-orange-200 bg-orange-50">
+          <AlertTriangle className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-800">
+            You have{" "}
+            <span className="font-bold">{formatReplyTimer(replyTimer)}</span> to
+            post your first argument or {`you'll`} be removed from the debate!
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Moderation Warning */}
+      {moderationWarning && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{moderationWarning}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Post Argument */}
+      {session?.user && userParticipation && isDebateActive && (
+        <Card className="mb-6 border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Post Your Argument
+            </CardTitle>
+            <CardDescription>
+              {`You're `}arguing for the{" "}
+              <Badge
+                variant={
+                  userParticipation.side === "support"
+                    ? "default"
+                    : "destructive"
+                }
+              >
+                {userParticipation.side}
+              </Badge>{" "}
+              side
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Share your argument..."
+                value={argumentText}
+                onChange={(e) => setArgumentText(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+              <Button
+                onClick={handleSubmitArgument}
+                disabled={!argumentText.trim()}
+              >
+                Post Argument
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Vote Tally */}
+      <Card className="mb-6 border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Current Standing
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="text-center p-6 bg-green-50 rounded-lg">
+              <div className="text-3xl font-bold text-green-600">
+                {debate.supportVotes}
+              </div>
+              <div className="text-sm text-green-600 font-medium">
+                Support Votes
+              </div>
+            </div>
+            <div className="text-center p-6 bg-red-50 rounded-lg">
+              <div className="text-3xl font-bold text-red-600">
+                {debate.opposeVotes}
+              </div>
+              <div className="text-sm text-red-600 font-medium">
+                Oppose Votes
+              </div>
+            </div>
+          </div>
+          <div className="h-3 bg-muted rounded-full overflow-hidden mb-4">
+            <div
+              className="h-full bg-gradient-to-r from-green-500 to-red-500"
+              style={{
+                width:
+                  debate.totalVotes > 0
+                    ? `${(debate.supportVotes / debate.totalVotes) * 100}%`
+                    : "50%",
+              }}
+            />
+          </div>
+          {!isDebateActive && debate.winner && (
+            <div className="text-center">
+              <Badge variant="default" className="text-lg px-6 py-2">
+                🏆 Winner:{" "}
+                {debate.winner.charAt(0).toUpperCase() + debate.winner.slice(1)}{" "}
+                Side
+              </Badge>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Arguments */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Support Arguments */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="bg-green-50">
+            <CardTitle className="text-green-600 flex items-center gap-2">
+              <ThumbsUp className="h-5 w-5" />
+              Support Arguments ({supportArguments.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 p-6">
+            {supportArguments.length > 0 ? (
+              supportArguments.map((argument: Argument) => (
+                <div
+                  key={argument._id}
+                  className="border rounded-lg p-4 bg-card"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-green-100 text-green-700">
+                          {argument.authorName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-sm">
+                          {argument.authorName}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(argument.createdAt), {
+                            addSuffix: true,
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {canEdit(argument._id) && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingArgument(argument._id);
+                              setEditText(argument.content);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => deleteArgument(argument._id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {editingArgument === argument._id ? (
+                    <div className="space-y-3">
+                      <Textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        rows={3}
+                        className="resize-none"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleEditArgument(argument._id)}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingArgument(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm mb-4">{argument.content}</p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => voteOnArgument(argument._id)}
+                      disabled={
+                        !session?.user ||
+                        !isDebateActive ||
+                        argument.votedBy.includes(session?.user?.email || "")
+                      }
+                      className="flex items-center gap-2 hover:bg-green-50"
+                    >
+                      <ThumbsUp className="h-4 w-4" />
+                      <span>{argument.votes}</span>
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-50" />
+                <p className="text-muted-foreground">No arguments yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Be the first to support this debate!
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Oppose Arguments */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="bg-red-50">
+            <CardTitle className="text-red-600 flex items-center gap-2">
+              <ThumbsUp className="h-5 w-5 rotate-180" />
+              Oppose Arguments ({opposeArguments.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 p-6">
+            {opposeArguments.length > 0 ? (
+              opposeArguments.map((argument: Argument) => (
+                <div
+                  key={argument._id}
+                  className="border rounded-lg p-4 bg-card"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-red-100 text-red-700">
+                          {argument.authorName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-sm">
+                          {argument.authorName}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(argument.createdAt), {
+                            addSuffix: true,
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {canEdit(argument._id) && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingArgument(argument._id);
+                              setEditText(argument.content);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => deleteArgument(argument._id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {editingArgument === argument._id ? (
+                    <div className="space-y-3">
+                      <Textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        rows={3}
+                        className="resize-none"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleEditArgument(argument._id)}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingArgument(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm mb-4">{argument.content}</p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => voteOnArgument(argument._id)}
+                      disabled={
+                        !session?.user ||
+                        !isDebateActive ||
+                        argument.votedBy.includes(session?.user?.email || "")
+                      }
+                      className="flex items-center gap-2 hover:bg-red-50"
+                    >
+                      <ThumbsUp className="h-4 w-4" />
+                      <span>{argument.votes}</span>
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-50" />
+                <p className="text-muted-foreground">No arguments yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Be the first to oppose this debate!
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default DebateDetails;

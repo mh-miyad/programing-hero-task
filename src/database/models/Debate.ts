@@ -1,3 +1,4 @@
+// database/models/Debate.ts
 import { Schema, model, models } from "mongoose";
 
 const DebateSchema = new Schema({
@@ -9,22 +10,22 @@ const DebateSchema = new Schema({
   duration: { type: Number, required: true },
   endTime: { type: Date, required: true },
   createdAt: { type: Date, default: Date.now },
-  createdBy: { type: String, required: true },
+  createdBy: { type: String, required: true }, // Email string
   participants: [
     {
-      userId: { type: String, required: true },
+      userId: { type: String, required: true }, // Email string
       side: { type: String, enum: ["support", "oppose"], required: true },
       joinedAt: { type: Date, default: Date.now },
     },
   ],
   arguments: [
     {
-      authorId: { type: String, required: true },
+      authorId: { type: String, required: true }, // Email string
       authorName: { type: String, required: true },
       side: { type: String, enum: ["support", "oppose"], required: true },
       content: { type: String, required: true },
       votes: { type: Number, default: 0 },
-      votedBy: [{ type: String }],
+      votedBy: [{ type: String }], // Array of email strings
       createdAt: { type: Date, default: Date.now },
     },
   ],

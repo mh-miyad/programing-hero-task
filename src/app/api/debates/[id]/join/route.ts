@@ -2,12 +2,13 @@
 import { connectDB } from "@/database/db.config";
 import Debate from "@/database/models/Debate";
 import { NextRequest, NextResponse } from "next/server";
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  await connectDB();
   try {
+    await connectDB();
     const { id } = params;
     const { userId, side } = await req.json(); // userId is email
 

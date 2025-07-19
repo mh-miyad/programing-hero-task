@@ -1,5 +1,6 @@
+// Type/type.ts
 import { debateSchema } from "@/Zod";
-import z from "zod";
+import { z } from "zod";
 
 export type DebateForm = z.infer<typeof debateSchema>;
 
@@ -12,6 +13,12 @@ export interface Argument {
   votes: number;
   votedBy: string[];
   createdAt: string;
+}
+
+export interface Participant {
+  userId: string;
+  side: "support" | "oppose";
+  joinedAt: string;
 }
 
 export interface Debate {
@@ -34,33 +41,6 @@ export interface Debate {
   winner: "support" | "oppose" | null;
 }
 
-export interface DebateStore {
-  user: User | null;
-  users: User[];
-  debates: Debate[];
-  signIn: () => void;
-  signOut: () => void;
-  addDebate: (debate: Debate) => void;
-  joinDebate: (
-    debateId: string,
-    userId: string,
-    side: "support" | "oppose"
-  ) => void;
-  addArgument: (debateId: string, argument: Argument) => void;
-  voteOnArgument: (
-    debateId: string,
-    argumentId: string,
-    userId: string
-  ) => void;
-  updateArgument: (
-    debateId: string,
-    argumentId: string,
-    content: string
-  ) => void;
-  deleteArgument: (debateId: string, argumentId: string) => void;
-  checkDebateStatus: () => void;
-}
-
 export interface User {
   id: string;
   name: string;
@@ -69,8 +49,13 @@ export interface User {
   joinedAt: string;
 }
 
-export interface Participant {
-  userId: string;
-  side: "support" | "oppose";
-  joinedAt: string;
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  totalVotes: number;
+  debatesParticipated: number;
+  argumentsPosted: number;
+  wins: number;
 }

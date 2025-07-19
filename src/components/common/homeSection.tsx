@@ -13,6 +13,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { FiFilter, FiSearch, FiTrendingUp } from "react-icons/fi";
 import CardDebate from "../Animated/card";
+import Loading from "../Animated/Loading";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -79,7 +80,7 @@ export default function HomeSection() {
     "society",
   ];
   if (loading) {
-    return <>Loading...</>;
+    return <Loading />;
   }
   return (
     <motion.div

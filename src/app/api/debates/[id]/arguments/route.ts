@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { connectDB } from "@/database/db.config";
 import Debate from "@/database/models/Debate";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,12 +10,11 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  await connectDB();
   try {
+    await connectDB();
     const { id } = params;
     const { authorId, authorName, side, content } = await req.json(); // authorId is email
 
-    // Auto-moderation
     const lowerContent = content.toLowerCase();
     const foundBannedWord = bannedWords.find((word) =>
       lowerContent.includes(word)
@@ -78,12 +78,11 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  await connectDB();
   try {
+    await connectDB();
     const { id } = params;
     const { argumentId, content } = await req.json();
 
-    // Auto-moderation
     const lowerContent = content.toLowerCase();
     const foundBannedWord = bannedWords.find((word) =>
       lowerContent.includes(word)
@@ -140,8 +139,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  await connectDB();
   try {
+    await connectDB();
     const { id } = params;
     const { argumentId } = await req.json();
 
