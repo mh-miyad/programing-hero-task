@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDebateStore } from "@/state/store";
+import { useDebateStore } from "@/state/data";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import { useState } from "react";

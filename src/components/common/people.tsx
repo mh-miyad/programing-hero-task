@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDebateStore } from "@/state/store";
+import { useDebateStore } from "@/state/data";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";

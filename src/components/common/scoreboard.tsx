@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useDebateStore } from "@/state/store";
+import { useDebateStore } from "@/state/data";
 import { AnimatePresence, motion } from "framer-motion";
 import { Award, Crown, Star, Trophy } from "lucide-react";
 import { useState } from "react";

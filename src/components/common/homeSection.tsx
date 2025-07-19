@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -9,17 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDebateStore } from "@/state/store";
+import useGetAllDebates from "@/hooks/useGetAllDebates";
 import { AnimatePresence, motion } from "framer-motion";
-import Link from "next/link";
 import { useState } from "react";
-import {
-  FiArrowRight,
-  FiFilter,
-  FiSearch,
-  FiTrendingUp,
-  FiZap,
-} from "react-icons/fi";
+import { FiFilter, FiSearch, FiTrendingUp } from "react-icons/fi";
 import CardDebate from "../Animated/card";
 
 const containerVariants = {
@@ -46,7 +38,7 @@ const itemVariants = {
 };
 
 export default function HomeSection() {
-  const { debates, user } = useDebateStore();
+  const { debates, loading, errors } = useGetAllDebates();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
@@ -86,7 +78,9 @@ export default function HomeSection() {
     "science",
     "society",
   ];
-
+  if (loading) {
+    return <>Loading...</>;
+  }
   return (
     <motion.div
       className="container mx-auto px-4 py-8"
@@ -113,24 +107,6 @@ export default function HomeSection() {
           Join the ultimate battle of opinions and make your voice heard in our
           vibrant debate community
         </motion.p>
-        {user && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            <Link href="/create-debate">
-              <Button
-                size="lg"
-                className=" shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-3"
-              >
-                <FiZap className="mr-2 h-5 w-5" />
-                Start a Debate
-                <FiArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </motion.div>
-        )}
       </motion.div>
 
       {/* Search and Filters */}
@@ -182,7 +158,7 @@ export default function HomeSection() {
           layout
         >
           {filteredDebates.map((debate) => (
-            <div key={debate.id}>
+            <div key={debate._id}>
               <CardDebate debate={debate} />
             </div>
           ))}

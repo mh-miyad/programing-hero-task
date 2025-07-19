@@ -1,5 +1,6 @@
 "use client";
-import { Debate } from "@/state/store";
+
+import { Debate } from "@/Type/type";
 import * as motion from "motion/react-client";
 import Link from "next/link";
 import {
@@ -33,7 +34,7 @@ const CardDebate = ({ debate }: { debate: Debate }) => {
   };
   return (
     <motion.div
-      key={debate.id}
+      key={debate._id}
       variants={{
         hidden: { opacity: 0, scale: 0.95, y: 20 },
         visible: {
@@ -104,7 +105,7 @@ const CardDebate = ({ debate }: { debate: Debate }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            {debate.tags.map((tag, tagIndex) => (
+            {debate.tags.map((tag: string, tagIndex: number) => (
               <motion.div
                 key={tag}
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -161,14 +162,14 @@ const CardDebate = ({ debate }: { debate: Debate }) => {
                   width:
                     debate.totalVotes > 0
                       ? `${(debate.supportVotes / debate.totalVotes) * 100}%`
-                      : "90%",
+                      : "1%",
                 }}
                 transition={{ duration: 1, delay: 0.7 }}
               />
             </div>
           </motion.div>
 
-          <Link href={`/debate/${debate.id}`}>
+          <Link href={`/debate/${debate._id}`}>
             <Button className="w-full shadow-md hover:shadow-lg transition-all duration-200">
               Join Debate
               <FiArrowRight className="ml-2 h-4 w-4" />
