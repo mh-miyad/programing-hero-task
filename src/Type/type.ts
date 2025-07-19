@@ -59,3 +59,19 @@ export interface LeaderboardEntry {
   argumentsPosted: number;
   wins: number;
 }
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+}
+
+export interface ProfileData {
+  user: User;
+  debatesParticipated: number;
+  totalVotes: number;
+  argumentsPosted: number;
+  debatesWon: number;
+  winRate: number;
+  recentArguments: Argument[];
+}

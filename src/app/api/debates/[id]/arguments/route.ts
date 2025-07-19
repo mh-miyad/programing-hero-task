@@ -1,20 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { connectDB } from "@/database/db.config";
 import Debate from "@/database/models/Debate";
 import { NextRequest, NextResponse } from "next/server";
 
+import { Argument, Participant } from "@/Type/type";
+import mongoose from "mongoose";
+
 const bannedWords = ["stupid", "idiot", "dumb", "hate", "kill", "die"];
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+interface Params {
+  params: { id: string };
+}
+
+export async function POST(req: NextRequest, { params }: Params) {
   try {
     await connectDB();
     const { id } = params;
-    const { authorId, authorName, side, content } = await req.json(); // authorId is email
-
+    const { authorId, authorName, side, content } = await req.json();
+    if (!authorId || !authorName || !side || !content) {
+      return NextResponse.json(
+        { message: "Missing required fields" },
+        { status: 400 }
+      );
+    }
     const lowerContent = content.toLowerCase();
     const foundBannedWord = bannedWords.find((word) =>
       lowerContent.includes(word)
@@ -42,7 +49,7 @@ export async function POST(
     }
 
     const participant = debate.participants.find(
-      (p: any) => p.userId === authorId && p.side === side
+      (p: Participant) => p.userId === authorId && p.side === side
     );
     if (!participant) {
       return NextResponse.json(
@@ -51,14 +58,15 @@ export async function POST(
       );
     }
 
-    const argument = {
+    const argument: Argument = {
+      _id: new mongoose.Types.ObjectId().toString(),
       authorId,
       authorName,
       side,
       content,
       votes: 0,
       votedBy: [],
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
 
     debate.arguments.push(argument);
@@ -74,10 +82,7 @@ export async function POST(
   }
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(req: NextRequest, { params }: Params) {
   try {
     await connectDB();
     const { id } = params;
@@ -103,7 +108,7 @@ export async function PUT(
     }
 
     const argument = debate.arguments.find(
-      (a: any) => a._id.toString() === argumentId
+      (a: Argument) => a._id.toString() === argumentId
     );
     if (!argument) {
       return NextResponse.json(
@@ -135,10 +140,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, { params }: Params) {
   try {
     await connectDB();
     const { id } = params;
@@ -153,7 +155,7 @@ export async function DELETE(
     }
 
     const argument = debate.arguments.find(
-      (a: any) => a._id.toString() === argumentId
+      (a: Argument) => a._id.toString() === argumentId
     );
     if (!argument) {
       return NextResponse.json(
@@ -173,7 +175,7 @@ export async function DELETE(
     }
 
     debate.arguments = debate.arguments.filter(
-      (a: any) => a._id.toString() !== argumentId
+      (a: Argument) => a._id.toString() !== argumentId
     );
     await debate.save();
 

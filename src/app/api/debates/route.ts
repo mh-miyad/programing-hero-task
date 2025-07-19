@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { connectDB } from "@/database/db.config";
 import Debate from "@/database/models/Debate";
 import { NextRequest, NextResponse } from "next/server";

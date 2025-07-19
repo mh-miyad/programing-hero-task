@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     await connectDB();
-    const { id } = await params;
+    const { id } = params;
     const debate = await Debate.findById(id);
     if (!debate) {
       return NextResponse.json(
