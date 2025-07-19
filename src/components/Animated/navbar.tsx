@@ -1,7 +1,7 @@
+"use client";
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { ThemeButton } from "./ThemeToggler";
-
 const Navbar = () => {
   return (
     <header className="h-20 w-full flex items-center   backdrop-blur-lg bg-transparent  border-b border-gray-100 shadow">

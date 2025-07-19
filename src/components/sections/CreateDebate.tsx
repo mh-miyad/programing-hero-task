@@ -79,7 +79,7 @@ const CreateDebateComp = () => {
 
     console.log(newDebate);
 
-    router.push(`/debate/${newDebate.id}`);
+    // router.push(`/debate/${newDebate.id}`);
   };
 
   const categories = [

@@ -1,4 +1,5 @@
-import RootProvider from "@/components/Provider/RootProvider";
+import AuthProvider from "@/components/Provider/AuthProvider";
+import { ThemeProvider } from "@/components/Provider/ThemeProvider";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
@@ -22,7 +23,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.className} ${poppins.variable} antialiased`}>
-        <RootProvider>{children}</RootProvider>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );
