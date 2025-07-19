@@ -278,15 +278,11 @@ const mockDebates: Debate[] = [
 export const useDebateStore = create<DebateStore>()(
   persist(
     (set) => ({
-      user: mockUsers[0],
+      user: null,
       users: mockUsers,
-      debates: mockDebates,
 
-      signIn: () => {
-        // In a real app, this would handle actual authentication
-        const randomUser =
-          mockUsers[Math.floor(Math.random() * mockUsers.length)];
-        set({ user: randomUser });
+      signIn: (user) => {
+        set({ user });
       },
 
       signOut: () => {

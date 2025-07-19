@@ -23,12 +23,15 @@ import { DebateForm } from "@/Type/type";
 import { debateSchema } from "@/Zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+
 const CreateDebateComp = () => {
   const router = useRouter();
   const { addDebate } = useDebateStore();
+  const { data: session } = useSession();
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const {
@@ -40,6 +43,7 @@ const CreateDebateComp = () => {
   } = useForm<DebateForm>({
     resolver: zodResolver(debateSchema),
   });
+
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 5) {
       setTags([...tags, tagInput.trim()]);
@@ -52,6 +56,11 @@ const CreateDebateComp = () => {
   };
 
   const onSubmit = (data: DebateForm) => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
     const durationHours = Number.parseInt(data.duration);
     const endTime = new Date(
       Date.now() + durationHours * 60 * 60 * 1000
@@ -67,7 +76,7 @@ const CreateDebateComp = () => {
       duration: durationHours,
       endTime,
       createdAt: new Date().toISOString(),
-      createdBy: Math.floor(Math.random() * 1000000).toString(),
+      createdBy: session?.user?.email,
       participants: [],
       arguments: [],
       supportVotes: 0,
@@ -77,9 +86,7 @@ const CreateDebateComp = () => {
       winner: null,
     };
 
-    console.log(newDebate);
-
-    // router.push(`/debate/${newDebate.id}`);
+    router.push(`/debate/${newDebate.id}`);
   };
 
   const categories = [

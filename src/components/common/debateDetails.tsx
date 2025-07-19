@@ -133,6 +133,7 @@ export default function DebateDetailsComp() {
     );
   }
 
+  const debateCreator = users.find((u) => u.id === debate.createdBy);
   const userParticipation = debate.participants.find(
     (p) => p.userId === user?.id
   );
@@ -243,6 +244,12 @@ export default function DebateDetailsComp() {
                 <CardTitle className="text-2xl md:text-3xl leading-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
                   {debate.title}
                 </CardTitle>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Avatar className="h-6 w-6">
+                    <AvatarFallback>{debateCreator?.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <span>{debateCreator?.name}</span>
+                </div>
                 <CardDescription className="text-base leading-relaxed">
                   {debate.description}
                 </CardDescription>
