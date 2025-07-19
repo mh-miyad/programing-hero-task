@@ -17,7 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDebateStore } from "@/lib/store";
+import { useDebateStore } from "@/state/store";
+
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import {
@@ -154,10 +155,8 @@ export default function PeoplePage() {
     >
       {/* Header */}
       <motion.div className="text-center mb-8" variants={itemVariants}>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
-          Community Members
-        </h1>
-        <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
+        <h1 className="text-4xl font-bold mb-4">Community Members</h1>
+        <p className="text-xl  max-w-2xl mx-auto">
           Meet the passionate debaters who make our community vibrant and
           engaging
         </p>
@@ -174,15 +173,15 @@ export default function PeoplePage() {
             placeholder="Search members by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white border-primary-200 focus:border-primary-400 focus:ring-primary-200"
+            className="pl-10 "
           />
         </div>
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full md:w-48 bg-white border-primary-200">
+          <SelectTrigger className="w-full md:w-48 ">
             <FiFilter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
-          <SelectContent className="bg-white border-primary-200">
+          <SelectContent className="">
             <SelectItem value="most-active">Most Active</SelectItem>
             <SelectItem value="most-voted">Most Voted</SelectItem>
             <SelectItem value="highest-winrate">Highest Win Rate</SelectItem>
@@ -196,43 +195,39 @@ export default function PeoplePage() {
         className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
         variants={itemVariants}
       >
-        <Card className="bg-white border-primary-200 shadow-lg">
+        <Card className="  shadow-lg">
           <CardContent className="p-6 text-center">
-            <FiUsers className="h-8 w-8 mx-auto mb-2 text-primary-600" />
-            <div className="text-2xl font-bold text-secondary-900">
-              {users.length}
-            </div>
-            <div className="text-sm text-secondary-600">Total Members</div>
+            <FiUsers className="h-8 w-8 mx-auto mb-2 " />
+            <div className="text-2xl font-bold ">{users.length}</div>
+            <div className="text-sm ">Total Members</div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-primary-200 shadow-lg">
+        <Card className="  shadow-lg">
           <CardContent className="p-6 text-center">
-            <FiMessageSquare className="h-8 w-8 mx-auto mb-2 text-primary-600" />
-            <div className="text-2xl font-bold text-secondary-900">
+            <FiMessageSquare className="h-8 w-8 mx-auto mb-2 " />
+            <div className="text-2xl font-bold ">
               {debates.reduce(
                 (sum, debate) => sum + debate.arguments.length,
                 0
               )}
             </div>
-            <div className="text-sm text-secondary-600">Total Arguments</div>
+            <div className="text-sm ">Total Arguments</div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-primary-200 shadow-lg">
+        <Card className="  shadow-lg">
           <CardContent className="p-6 text-center">
-            <FiThumbsUp className="h-8 w-8 mx-auto mb-2 text-primary-600" />
-            <div className="text-2xl font-bold text-secondary-900">
+            <FiThumbsUp className="h-8 w-8 mx-auto mb-2 " />
+            <div className="text-2xl font-bold ">
               {debates.reduce((sum, debate) => sum + debate.totalVotes, 0)}
             </div>
-            <div className="text-sm text-secondary-600">Total Votes</div>
+            <div className="text-sm ">Total Votes</div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-primary-200 shadow-lg">
+        <Card className="  shadow-lg">
           <CardContent className="p-6 text-center">
-            <FiTrendingUp className="h-8 w-8 mx-auto mb-2 text-primary-600" />
-            <div className="text-2xl font-bold text-secondary-900">
-              {debates.length}
-            </div>
-            <div className="text-sm text-secondary-600">Active Debates</div>
+            <FiTrendingUp className="h-8 w-8 mx-auto mb-2 " />
+            <div className="text-2xl font-bold ">{debates.length}</div>
+            <div className="text-sm ">Active Debates</div>
           </CardContent>
         </Card>
       </motion.div>
@@ -257,12 +252,12 @@ export default function PeoplePage() {
                 layout
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="h-full bg-white border-primary-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                <Card className="h-full   shadow-lg hover:shadow-xl transition-all duration-300">
                   <CardHeader className="text-center pb-4">
                     <div className="relative">
-                      <Avatar className="h-20 w-20 mx-auto mb-4 ring-4 ring-primary-100">
+                      <Avatar className="h-20 w-20 mx-auto mb-4 ring-4 ring">
                         <AvatarImage src={user.avatar || "/placeholder.svg"} />
-                        <AvatarFallback className="text-2xl font-bold bg-primary-100 text-primary-700">
+                        <AvatarFallback className="text-2xl font-bold  ">
                           {user.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
@@ -276,22 +271,18 @@ export default function PeoplePage() {
                         {badge.label}
                       </motion.div>
                     </div>
-                    <CardTitle className="text-xl text-secondary-900 mt-4">
-                      {user.name}
-                    </CardTitle>
-                    <CardDescription className="text-secondary-600">
-                      {user.email}
-                    </CardDescription>
+                    <CardTitle className="text-xl  mt-4">{user.name}</CardTitle>
+                    <CardDescription className="">{user.email}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 text-center">
-                      <div className="bg-primary-50 rounded-lg p-3">
+                      <div className="bg-primary/5 rounded-lg p-3">
                         <div className="text-lg font-bold text-primary-700">
                           {user.debatesParticipated}
                         </div>
-                        <div className="text-xs text-primary-600">Debates</div>
+                        <div className="text-xs ">Debates</div>
                       </div>
-                      <div className="bg-green-50 rounded-lg p-3">
+                      <div className="bg-green-50 rounded-lg p-3 dark:bg-green-600/10">
                         <div className="text-lg font-bold text-green-700">
                           {user.totalVotes}
                         </div>
@@ -300,13 +291,13 @@ export default function PeoplePage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 text-center">
-                      <div className="bg-blue-50 rounded-lg p-3">
+                      <div className="bg-blue-50 rounded-lg p-3 dark:bg-blue-500/10">
                         <div className="text-lg font-bold text-blue-700">
                           {user.argumentsPosted}
                         </div>
                         <div className="text-xs text-blue-600">Arguments</div>
                       </div>
-                      <div className="bg-yellow-50 rounded-lg p-3">
+                      <div className="bg-yellow-50 rounded-lg p-3 dark:bg-yellow-600/10">
                         <div className="text-lg font-bold text-yellow-700">
                           {user.winRate}%
                         </div>
@@ -314,16 +305,16 @@ export default function PeoplePage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 text-sm text-secondary-500 pt-2 border-t border-primary-100">
+                    <div className="flex items-center justify-center gap-2 text-sm text py-2 border-t border">
                       <FiCalendar className="h-4 w-4" />
-                      <span>
+                      <span className="">
                         Joined {new Date(user.joinedAt).toLocaleDateString()}
                       </span>
                     </div>
 
                     <Button
                       variant="outline"
-                      className="w-full border-primary-200 text-primary-700 hover:bg-primary-50 bg-transparent"
+                      className="w-full  text-primary-700 hover:bg-primary-50 bg-transparent"
                     >
                       View Profile
                     </Button>
@@ -346,7 +337,7 @@ export default function PeoplePage() {
           <h3 className="text-xl font-semibold text-secondary-700 mb-2">
             No members found
           </h3>
-          <p className="text-secondary-500">
+          <p className="text">
             Try adjusting your search to find more community members
           </p>
         </motion.div>

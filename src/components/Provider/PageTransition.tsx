@@ -21,6 +21,12 @@ export function PageTransition({ children }: PageTransitionProps) {
           y: 10,
           scale: 0.95,
         }}
+        transition={{
+          delay: 0.2,
+          opacity: { duration: 0.2 },
+          duration: 0.4,
+          ease: "easeOut",
+        }}
         animate={{
           opacity: 1,
           y: 0,

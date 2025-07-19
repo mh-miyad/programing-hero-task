@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,17 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useDebateStore } from "@/lib/store";
+import { useDebateStore } from "@/state/store";
 import { AnimatePresence, motion } from "framer-motion";
+import { Award, Crown, Star, Trophy } from "lucide-react";
 import { useState } from "react";
 import {
-  FiAward,
-  FiCrown,
   FiMessageSquare,
-  FiStar,
   FiThumbsUp,
   FiTrendingUp,
-  FiTrophy,
   FiUsers,
   FiZap,
 } from "react-icons/fi";
@@ -63,7 +61,7 @@ const podiumVariants = {
   },
 };
 
-export default function ScoreboardPage() {
+export default function ScoreboardComp() {
   const { debates, users } = useDebateStore();
   const [timeFilter, setTimeFilter] = useState<
     "weekly" | "monthly" | "all-time"
@@ -95,11 +93,11 @@ export default function ScoreboardPage() {
   const getRankIcon = (index: number) => {
     switch (index) {
       case 0:
-        return <FiTrophy className="h-6 w-6 text-yellow-500" />;
+        return <Trophy className="h-6 w-6 text-yellow-500" />;
       case 1:
-        return <FiAward className="h-6 w-6 text-gray-400" />;
+        return <Award className="h-6 w-6 text-gray-400" />;
       case 2:
-        return <FiStar className="h-6 w-6 text-amber-600" />;
+        return <Star className="h-6 w-6 text-amber-600" />;
       default:
         return (
           <div className="h-6 w-6 rounded-full bg-secondary-200 flex items-center justify-center">
@@ -120,7 +118,7 @@ export default function ScoreboardPage() {
             transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           >
             <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg">
-              <FiCrown className="h-3 w-3 mr-1" />
+              <Crown className="h-3 w-3 mr-1" />
               Champion
             </Badge>
           </motion.div>
@@ -149,7 +147,7 @@ export default function ScoreboardPage() {
       animate="visible"
       variants={containerVariants}
     >
-      <motion.div className="text-center mb-12" variants={itemVariants}>
+      <motion.div className="text-center mb-12" variants={{ itemVariants }}>
         <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-yellow-500 via-yellow-600 to-yellow-700 bg-clip-text text-transparent">
           🏆 Hall of Fame
         </h1>
@@ -177,17 +175,17 @@ export default function ScoreboardPage() {
       </motion.div>
 
       {/* Top 3 Podium */}
-      <motion.div className="mb-16" variants={itemVariants}>
+      <motion.div className="mb-16" variants={{ itemVariants }}>
         <div className="flex justify-center items-end gap-8 mb-8">
           {leaderboardData.slice(0, 3).map((user, index) => {
-            const positions = [1, 0, 2]; // Reorder for podium effect (2nd, 1st, 3rd)
+            const positions = [1, 0, 2];
             const actualIndex = positions.indexOf(index);
-            const heights = ["h-32", "h-40", "h-28"];
+            const heights = ["h-[180px]", "h-[110px]", "h-[100px]"];
 
             return (
               <motion.div
                 key={user.id}
-                variants={podiumVariants}
+                variants={{ podiumVariants }}
                 initial="hidden"
                 animate="visible"
                 transition={{ delay: actualIndex * 0.2 }}
@@ -196,7 +194,7 @@ export default function ScoreboardPage() {
                     ? "order-2"
                     : actualIndex === 0
                     ? "order-1"
-                    : "order-3"
+                    : "order-2"
                 }`}
               >
                 {/* Podium Base */}
@@ -211,7 +209,7 @@ export default function ScoreboardPage() {
                   whileHover={{ scale: 1.05 }}
                 >
                   <span className="text-white font-bold text-xl">
-                    #{index + 1}
+                    # {index + 1}
                   </span>
                 </motion.div>
 
@@ -292,7 +290,7 @@ export default function ScoreboardPage() {
       </motion.div>
 
       {/* Full Leaderboard */}
-      <motion.div variants={itemVariants}>
+      <motion.div variants={{ itemVariants }}>
         <Card className="border-0 shadow-xl bg-white">
           <CardHeader className="bg-gradient-to-r from-primary-50 to-primary-100 border-b border-primary-200">
             <CardTitle className="flex items-center gap-2 text-2xl text-secondary-900">

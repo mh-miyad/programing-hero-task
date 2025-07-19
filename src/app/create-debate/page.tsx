@@ -1,5 +1,7 @@
+import CreateDebateComp from "@/components/sections/CreateDebate";
+
 const CreateDebate = () => {
-  return <div>CreateDebate</div>;
+  return <CreateDebateComp />;
 };
 
 export default CreateDebate;

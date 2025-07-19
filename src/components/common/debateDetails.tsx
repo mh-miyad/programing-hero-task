@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDistanceToNow } from "@/lib/date-fns";
-import { useDebateStore } from "@/lib/store";
+import { useDebateStore } from "@/state/store";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -28,60 +28,6 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-    },
-  },
-};
-
-const argumentVariants = {
-  hidden: { opacity: 0, x: -20, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    scale: 1,
-    transition: {
-      duration: 0.4,
-      ease: "easeOut",
-    },
-  },
-  hover: {
-    scale: 1.02,
-    transition: {
-      duration: 0.2,
-    },
-  },
-};
-
-const voteButtonVariants = {
-  idle: { scale: 1 },
-  hover: { scale: 1.1 },
-  tap: { scale: 0.95 },
-  voted: {
-    scale: [1, 1.2, 1],
-    transition: {
-      duration: 0.3,
-    },
-  },
-};
 
 const CountdownTimer = ({ endTime }: { endTime: string }) => {
   const [timeRemaining, setTimeRemaining] = useState("");
@@ -136,7 +82,7 @@ const CountdownTimer = ({ endTime }: { endTime: string }) => {
   );
 };
 
-export default function DebatePage() {
+export default function DebateDetailsComp() {
   const params = useParams();
   const debateId = params.id as string;
   const {
@@ -179,7 +125,7 @@ export default function DebatePage() {
           <CardHeader>
             <CardTitle>Debate Not Found</CardTitle>
             <CardDescription>
-              The debate you're looking for doesn't exist.
+              {`   The debate you're looking for doesn't exist.`}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -268,10 +214,9 @@ export default function DebatePage() {
       className="container mx-auto px-4 py-8"
       initial="hidden"
       animate="visible"
-      variants={containerVariants}
     >
       {/* Debate Header */}
-      <motion.div variants={itemVariants}>
+      <motion.div>
         <Card className="mb-6 overflow-hidden bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border-0 shadow-xl">
           <CardHeader>
             <div className="flex flex-col md:flex-row justify-between items-start gap-4">
@@ -441,7 +386,7 @@ export default function DebatePage() {
                 <span className="font-bold">
                   {formatReplyTimer(replyTimer)}
                 </span>{" "}
-                to post your first argument or you'll be removed from the
+                {` to post your first argument or you'll be removed from the`}
                 debate!
               </AlertDescription>
             </Alert>
@@ -482,7 +427,7 @@ export default function DebatePage() {
                   Post Your Argument
                 </CardTitle>
                 <CardDescription>
-                  You're arguing for the{" "}
+                  {` You're `}arguing for the{" "}
                   <Badge
                     variant={
                       userParticipation.side === "support"
@@ -533,7 +478,7 @@ export default function DebatePage() {
       </AnimatePresence>
 
       {/* Vote Tally */}
-      <motion.div variants={itemVariants}>
+      <motion.div>
         <Card className="mb-6 border-0 shadow-lg overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -625,7 +570,7 @@ export default function DebatePage() {
       {/* Arguments */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Support Arguments */}
-        <motion.div variants={itemVariants}>
+        <motion.div>
           <Card className="border-0 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20">
               <CardTitle className="text-green-600 flex items-center gap-2">
@@ -638,7 +583,6 @@ export default function DebatePage() {
                 {supportArguments.map((argument, index) => (
                   <motion.div
                     key={argument.id}
-                    variants={argumentVariants}
                     initial="hidden"
                     animate="visible"
                     exit={{ opacity: 0, x: -20 }}
@@ -748,7 +692,6 @@ export default function DebatePage() {
 
                     <div className="flex items-center justify-between">
                       <motion.div
-                        variants={voteButtonVariants}
                         initial="idle"
                         whileHover="hover"
                         whileTap="tap"
@@ -808,7 +751,7 @@ export default function DebatePage() {
         </motion.div>
 
         {/* Oppose Arguments */}
-        <motion.div variants={itemVariants}>
+        <motion.div>
           <Card className="border-0 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20">
               <CardTitle className="text-red-600 flex items-center gap-2">
@@ -821,7 +764,6 @@ export default function DebatePage() {
                 {opposeArguments.map((argument, index) => (
                   <motion.div
                     key={argument.id}
-                    variants={argumentVariants}
                     initial="hidden"
                     animate="visible"
                     exit={{ opacity: 0, x: 20 }}
@@ -931,7 +873,6 @@ export default function DebatePage() {
 
                     <div className="flex items-center justify-between">
                       <motion.div
-                        variants={voteButtonVariants}
                         initial="idle"
                         whileHover="hover"
                         whileTap="tap"

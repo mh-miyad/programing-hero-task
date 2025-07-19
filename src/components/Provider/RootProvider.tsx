@@ -14,7 +14,7 @@ const RootProvider = ({ children }: { children: ReactNode }) => {
       enableSystem
       disableTransitionOnChange
     >
-      <div className="min-h-screen w-full relative">
+      <div className="min-h-screen w-full relative ">
         <div
           className="absolute inset-0 z-0 dark:hidden"
           style={{
@@ -35,7 +35,7 @@ const RootProvider = ({ children }: { children: ReactNode }) => {
 
         <Navbar />
         <PageTransition>
-          <main className="relative z-50 backdrop-blur-2xl bg-transparent">
+          <main className="relative z-50 backdrop-blur-2xl bg-transparent transition-all duration-500 ease-linear">
             {children}
           </main>
         </PageTransition>
