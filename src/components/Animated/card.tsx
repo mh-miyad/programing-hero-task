@@ -60,7 +60,7 @@ const CardDebate = ({ debate }: { debate: Debate }) => {
       layout
       transition={{ delay: Math.random() * 0.1 }}
     >
-      <Card className="h-full bg-white border-primary-200 shadow-lg hover:shadow-xl transition-all duration-300">
+      <Card className="h-full dark:bg-transparent backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300">
         <CardHeader className="space-y-3">
           <div className="flex justify-between items-start gap-2">
             <CardTitle className="text-lg line-clamp-2 leading-tight text-secondary-900">
@@ -111,7 +111,10 @@ const CardDebate = ({ debate }: { debate: Debate }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 + tagIndex * 0.1 }}
               >
-                <Badge variant="outline" className="text-xs  transition-colors">
+                <Badge
+                  variant="outline"
+                  className="text-xs  transition-colors dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800 dark:hover:text-white cursor-pointer"
+                >
                   {tag}
                 </Badge>
               </motion.div>
@@ -136,7 +139,7 @@ const CardDebate = ({ debate }: { debate: Debate }) => {
           </div>
 
           <motion.div
-            className="bg-gradient-to-r from-green-50 to-red-50 rounded-lg p-3 border border-primary-100"
+            className="bg-gradient-to-r from-green-50 to-red-50 dark:from-green-500/5 dark:to-red-500/5 rounded-lg p-3 "
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
@@ -166,7 +169,7 @@ const CardDebate = ({ debate }: { debate: Debate }) => {
           </motion.div>
 
           <Link href={`/debate/${debate.id}`}>
-            <Button className="w-full  text-white shadow-md hover:shadow-lg transition-all duration-200">
+            <Button className="w-full shadow-md hover:shadow-lg transition-all duration-200">
               Join Debate
               <FiArrowRight className="ml-2 h-4 w-4" />
             </Button>

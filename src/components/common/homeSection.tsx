@@ -122,7 +122,7 @@ export default function HomeSection() {
             <Link href="/create-debate">
               <Button
                 size="lg"
-                className=" text-white shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-3"
+                className=" shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-3"
               >
                 <FiZap className="mr-2 h-5 w-5" />
                 Start a Debate
@@ -144,7 +144,7 @@ export default function HomeSection() {
             placeholder="Search debates by title, description, or tags..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white border-primary-200 focus:border-primary-400 focus:ring-primary-200"
+            className="pl-10 "
           />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
