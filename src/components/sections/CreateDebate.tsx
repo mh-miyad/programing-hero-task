@@ -92,7 +92,7 @@ const CreateDebateComp = () => {
       description: data.description,
       tags,
       category: data.category,
-      banner: data.banner || "/placeholder.svg?height=200&width=400",
+      banner: data.banner || "/placeHolder.webp",
       duration: durationHours,
       endTime,
       createdBy: session?.user?.email,
@@ -112,7 +112,7 @@ const CreateDebateComp = () => {
         setTagInput("");
         setTopic("");
         toast.success("Debate created successfully!");
-        router.push(`/debates/${createdDebate._id}`);
+        router.push(`/`);
       } else {
         toast.error("Failed to create debate.");
       }
