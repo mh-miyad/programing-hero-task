@@ -1,11 +1,19 @@
-import { withAuth } from "next-auth/middleware";
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
-export default withAuth(() => {}, {
-  pages: { signIn: "/login" },
-  callbacks: {
-    authorized: ({ token }) => !!token?.sub,
-  },
-});
+export async function middleware(request: NextRequest) {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(
+    "__Secure-next-auth.session-token"
+  )?.value;
+
+  if (!sessionToken) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

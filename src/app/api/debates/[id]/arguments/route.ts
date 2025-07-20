@@ -8,13 +8,13 @@ import mongoose from "mongoose";
 const bannedWords = ["stupid", "idiot", "dumb", "hate", "kill", "die"];
 
 interface Params {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
     const { authorId, authorName, side, content } = await req.json();
     if (!authorId || !authorName || !side || !content) {
       return NextResponse.json(
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 export async function PUT(req: NextRequest, { params }: Params) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
     const { argumentId, content } = await req.json();
 
     const lowerContent = content.toLowerCase();
@@ -143,7 +143,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
     const { argumentId } = await req.json();
 
     const debate = await Debate.findById(id);

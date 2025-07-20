@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.className} ${poppins.variable} antialiased`}>
+      <body className={`${poppins.className} ${poppins.variable} antialiased `}>
         <AuthProvider>
           <ThemeProvider
             attribute="class"

@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +17,8 @@ import {
   AlertTriangle,
   Edit,
   MessageSquare,
+  MoveLeft,
+  Sparkles,
   ThumbsUp,
   Trash2,
   TrendingUp,
@@ -27,13 +28,23 @@ import {
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useDebate } from "@/hooks/useDebate";
 import { formatDistanceToNow } from "@/lib/date-fns";
 import { Argument } from "@/Type/type";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Loading from "../Animated/Loading";
 import { CountdownTimer } from "./CountdownTimer";
 
 const DebateDetails = ({ id }: { id: string }) => {
+  const router = useRouter();
   const { data: session } = useSession();
   const {
     debate,
@@ -53,6 +64,9 @@ const DebateDetails = ({ id }: { id: string }) => {
   const [argumentText, setArgumentText] = useState("");
   const [editingArgument, setEditingArgument] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+  const [summaryText, setSummaryText] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   if (loading) {
     return <Loading />;
@@ -130,9 +144,24 @@ const DebateDetails = ({ id }: { id: string }) => {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
+      <div>
+        <Button className="mb-6" onClick={() => router.back()} size="sm">
+          <MoveLeft className="h-6 w-6" />
+          Go Back
+        </Button>
+      </div>
       {/* Debate Header */}
-      <Card className="mb-6 border-0 shadow-lg">
+      <Card className="mb-6 border-0 shadow-lg overflow-hidden pt-0">
+        <div className="">
+          <Image
+            src={debate.banner}
+            alt={debate.title}
+            width={1920}
+            height={1080}
+            loading="lazy"
+            className="max-h-[400px] object-cover  w-full aspect-video"
+          />
+        </div>
         <CardHeader>
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
             <div className="flex-1 space-y-3">
@@ -145,9 +174,6 @@ const DebateDetails = ({ id }: { id: string }) => {
               <CardTitle className="text-2xl md:text-3xl">
                 {debate.title}
               </CardTitle>
-              <CardDescription className="text-base text-justify">
-                {debate.description}
-              </CardDescription>
             </div>
             <div className="text-right space-y-2">
               <CountdownTimer endTime={debate.endTime} />
@@ -163,6 +189,25 @@ const DebateDetails = ({ id }: { id: string }) => {
               </div>
             </div>
           </div>
+          <CardDescription className="text-base text-justify">
+            {debate.description}
+          </CardDescription>
+          {debate && (
+            <Button
+              className="max-w-[200px]"
+              onClick={() => setIsSummaryDialogOpen(true)}
+              disabled={isSummarizing}
+            >
+              {isSummarizing ? (
+                <Loading />
+              ) : (
+                <>
+                  <Sparkles className="h-6 w-6 mr-2" />
+                  AI Summary
+                </>
+              )}
+            </Button>
+          )}
           <div className="flex flex-wrap gap-2 mt-4">
             {debate.tags.map((tag: string) => (
               <Badge key={tag} variant="outline">
@@ -560,6 +605,73 @@ const DebateDetails = ({ id }: { id: string }) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Floating AI Summary Button */}
+
+      {/* AI Summary Dialog */}
+      <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>AI Debate Summary</DialogTitle>
+            <DialogDescription>
+              An AI-generated summary of the debate.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {isSummarizing ? (
+              <div className="flex justify-center items-center h-32">
+                <p className="ml-2">Generating summary...</p>
+              </div>
+            ) : summaryText ? (
+              <p className="whitespace-pre-wrap">{summaryText}</p>
+            ) : (
+              <p className="text-muted-foreground">
+                Click{` "Generate Summary"`} to get an AI overview of this
+                debate.
+              </p>
+            )}
+          </div>
+          <div className="flex justify-end">
+            <Button
+              onClick={async () => {
+                setIsSummarizing(true);
+                setSummaryText(null);
+                try {
+                  const response = await fetch("/api/summarize-debate", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      title: debate.title,
+                      description: debate.description,
+                      supportArguments: supportArguments.map(
+                        (arg: Argument) => arg.content
+                      ),
+                      opposeArguments: opposeArguments.map(
+                        (arg: Argument) => arg.content
+                      ),
+                    }),
+                  });
+                  const data = await response.json();
+                  if (response.ok) {
+                    setSummaryText(data.summary);
+                  } else {
+                    setSummaryText(data.error || "Failed to generate summary.");
+                  }
+                } catch (err) {
+                  setSummaryText("An error occurred while generating summary.");
+                } finally {
+                  setIsSummarizing(false);
+                }
+              }}
+              disabled={isSummarizing}
+            >
+              {isSummarizing ? "Generating..." : "Generate Summary"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
