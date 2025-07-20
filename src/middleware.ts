@@ -1,11 +1,17 @@
 import { withAuth } from "next-auth/middleware";
 
-export default withAuth(() => {}, {
-  pages: { signIn: "/login" },
-  callbacks: {
-    authorized: ({ token }) => !!token?.sub,
+export default withAuth(
+  async function middleware(req) {
+    console.log("Middleware token:", req.nextauth?.token);
+    return;
   },
-});
+  {
+    pages: { signIn: "/login" },
+    callbacks: {
+      authorized: ({ token }) => !!token?.sub,
+    },
+  }
+);
 
 export const config = {
   matcher: [
