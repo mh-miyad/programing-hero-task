@@ -1,11 +1,7 @@
 import ScoreboardComp from "@/components/common/scoreboard";
 
 const ScoreBoard = () => {
-  return (
-    <div>
-      <ScoreboardComp />
-    </div>
-  );
+  return <ScoreboardComp />;
 };
 
 export default ScoreBoard;

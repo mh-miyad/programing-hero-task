@@ -18,7 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useDebateStore } from "@/state/store";
 import { DebateForm } from "@/Type/type";
 import { debateSchema } from "@/Zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,19 +26,22 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 const CreateDebateComp = () => {
   const router = useRouter();
-  const { addDebate } = useDebateStore();
   const { data: session } = useSession();
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [topic, setTopic] = useState("");
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
+    resetField,
   } = useForm<DebateForm>({
     resolver: zodResolver(debateSchema),
   });
@@ -55,7 +57,26 @@ const CreateDebateComp = () => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
-  const onSubmit = (data: DebateForm) => {
+  const handleGenerateContent = async () => {
+    if (!topic) return;
+    setGenerating(true);
+    try {
+      const response = await fetch("/api/generate-debate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic }),
+      });
+      const data = await response.json();
+      setValue("title", data.title);
+      setValue("description", data.description);
+    } catch (error) {
+      console.error("Error generating content:", error);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const onSubmit = async (data: DebateForm) => {
     if (!session) {
       router.push("/login");
       return;
@@ -67,7 +88,6 @@ const CreateDebateComp = () => {
     ).toISOString();
 
     const newDebate = {
-      id: Date.now().toString(),
       title: data.title,
       description: data.description,
       tags,
@@ -75,18 +95,30 @@ const CreateDebateComp = () => {
       banner: data.banner || "/placeholder.svg?height=200&width=400",
       duration: durationHours,
       endTime,
-      createdAt: new Date().toISOString(),
       createdBy: session?.user?.email,
-      participants: [],
-      arguments: [],
-      supportVotes: 0,
-      opposeVotes: 0,
-      totalVotes: 0,
-      isActive: true,
-      winner: null,
     };
 
-    router.push(`/debate/${newDebate.id}`);
+    try {
+      const response = await fetch("/api/debates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newDebate),
+      });
+      const createdDebate = await response.json();
+      if (createdDebate._id) {
+        resetField("title");
+        resetField("description");
+        setTags([]);
+        setTagInput("");
+        setTopic("");
+        toast.success("Debate created successfully!");
+        router.push(`/debates/${createdDebate._id}`);
+      } else {
+        toast.error("Failed to create debate.");
+      }
+    } catch (error) {
+      console.error("Error creating debate:", error);
+    }
   };
 
   const categories = [
@@ -108,6 +140,27 @@ const CreateDebateComp = () => {
   return (
     <section>
       <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto mb-8">
+          <CardHeader>
+            <CardTitle>Generate Debate Content (AI)</CardTitle>
+            <CardDescription>
+              Enter a topic and let AI generate a title and description for you.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Input
+                placeholder="Enter a topic, e.g., 'The future of remote work'"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              />
+              <Button onClick={handleGenerateContent} disabled={generating}>
+                {generating ? "Generating..." : "Generate"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle>Create New Debate</CardTitle>
